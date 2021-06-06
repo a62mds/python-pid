@@ -7,7 +7,7 @@ import time
 
 import matplotlib.pyplot as plt
 
-from src.PID import PIDController
+from src.pid import PIDController
 
 
 # Defaults
