@@ -120,6 +120,3 @@ dmypy.json
 
 # Pipenv lock file
 Pipfile.lock
-
-# Simulation results
-simulation-results/
