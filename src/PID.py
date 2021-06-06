@@ -12,8 +12,7 @@ class PIDController(object):
         self.gains = Gains(p=p_gain, i=i_gain, d=d_gain)
         self.setpoint = setpoint
         self._integrator = Integrator(0.0, "center-approx")
-        self._previous_error_value = None
-        self._previous_output_time = None
+        self._differentiator = Differentiator(0.0)
         
     @property
     def gains(self):
@@ -28,25 +27,16 @@ class PIDController(object):
             
     def get_output(self, input_value):
         self._ensure_setpoint_set()
-        current_time = datetime.now()
-        current_error_value = self.setpoint - input_value
-        p = self._gains.p * current_error_value
-        i = self._gains.i * self._integrator.compute(current_error_value, current_time)
-        d = self._gains.d * self._differentiate(current_error_value, current_time)
-        self._previous_output_time = current_time
-        self._previous_error_value = current_error_value
-        return p + i + d, current_error_value
+        current_time: datetime = datetime.now()
+        current_error: float = self.setpoint - input_value
+        p = self._gains.p * current_error
+        i = self._gains.i * self._integrator.compute(current_error, current_time)
+        d = self._gains.d * self._differentiator.compute(current_error, current_time)
+        return p + i + d, current_error
 
     def _ensure_setpoint_set(self):
         if self.setpoint is None:
             raise Exception("Setpoint not set")
-    
-    def _differentiate(self, current_error_value, current_time):
-        if self._previous_error_value is None or self._previous_output_time is None:
-            return 0.0
-        de = current_error_value - self._previous_error_value
-        dt = (current_time - self._previous_output_time).total_seconds()
-        return de / dt
 
 
 class Integrator(object):
@@ -82,3 +72,30 @@ class Integrator(object):
         self._last_integrand = integrand
         self._last_compute_time = current_time
         return self._value
+
+
+class Differentiator(object):
+    """
+    Abstracts numerical differentiation methods.
+    """
+
+    def __init__(self, initial_value: float=0.0) -> None:
+        """
+        Initialize a Differentiator object with an initial value.
+        """
+        self._last_value: float = initial_value
+        self._last_time: Optional[datetime] = None
+
+    def compute(self, current_value: float, current_time: datetime) -> float:
+        """
+        Compute the secant between the current input and the previous.
+        """
+        if self._last_time:
+            df: float = current_value - self._last_value
+            dt: float = (current_time - self._last_time).total_seconds()
+            output: float = df / dt
+        else:
+            output = self._last_value
+        self._last_value = current_value
+        self._last_time = current_time
+        return output
