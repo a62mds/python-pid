@@ -23,9 +23,9 @@ OUTPUT_INTERVAL_S = 0.001
 
 # Example actuator function used to transform controller output to a process
 # variable value
-# - Must have signature def ACTUATE(process_variable: float, controller_output: float)
+# - Must have signature def actuate(process_variable: float, controller_output: float)
 # - Must return an updated value of the process variable
-def ACTUATE(process_variable: float, controller_output: float)  -> float:
+def actuate(process_variable: float, controller_output: float)  -> float:
     output = 0.01 * controller_output
     random_fluctuation = 0.001 * random.random()
     return (process_variable + output) * (1.0 + random_fluctuation)
@@ -43,7 +43,7 @@ def main():
     data, run_info = run_simulation(
         controller,
         settings["initial-process-variable"],
-        ACTUATE,
+        actuate,
         settings["total-duration-s"],
         settings["output-interval-s"]
     )
