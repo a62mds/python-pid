@@ -88,7 +88,8 @@ class Differentiator(object):
 
     def compute(self, current_value: float, current_time: datetime) -> float:
         """
-        Compute the secant between the current input and the previous.
+        Compute the slope of the secant between the current input and the previous. If there is no
+        previous input, return the current input.
         """
         if self._last_time:
             df: float = current_value - self._last_value
